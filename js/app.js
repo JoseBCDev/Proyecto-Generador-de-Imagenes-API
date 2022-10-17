@@ -1,8 +1,16 @@
-
+//Variables
 const formulario = document.querySelector('#formulario');
 
 const resultado = document.querySelector('#resultado');
 
+const paginadorDiv = document.querySelector('#paginacion');
+
+const registroPorPagina = 40;
+
+let totalPaginas;
+let iterador;
+
+//Que se cargue la ventana automaticamente
 window.onload = ()=>{
     formulario.addEventListener('submit',validarFormulario);
 }
@@ -14,19 +22,21 @@ function validarFormulario(e){
 
     if(termino === '')
     {
+        //Validamos que si esta vacio, muestre la alerta
         mostrarAlerta('Agrega un Término de Búsqueda');
 
         return;
     }
-
+    //Invocamos la funcion una vez realizada la accion
     buscarImagenes(termino);
 }
 
 function mostrarAlerta(mensaje)
 {
-
+    //creamos una varaible para detectar a la alerta
     const existeAlerta = document.querySelector('.alerta');
 
+    //en caso que no exista la alerta, mostrar en el html
     if(!existeAlerta)
     {
         const alerta = document.createElement('p');
@@ -40,7 +50,7 @@ function mostrarAlerta(mensaje)
             <span class="block sm:inline">${mensaje}</span>`;
 
         formulario.appendChild(alerta);
-
+        //tiempo de 3s para removerse
         setTimeout(() => {
             alerta.remove();
         }, 3000);
@@ -50,21 +60,27 @@ function mostrarAlerta(mensaje)
 
 function buscarImagenes(palabra)
 {
+    //Establecemos los parametros de la API, luego consultamos a la API
     const key = '30646724-28b6ce9c335c39d50d52bf7f8';
-    const url = `https://pixabay.com/api/?key=${key}&q=${palabra}&per_page=100`;
+    const url = `https://pixabay.com/api/?key=${key}&q=${palabra}&per_page=${registroPorPagina}`;
 
     fetch(url)
         .then(respuesta => respuesta.json())
         .then(resultado =>{
+            totalPaginas = calcularPaginas(resultado.totalHits);
             mostrarImagenes(resultado.hits);
         })
 }
 
 function mostrarImagenes(imagenes)
 {
-    imagenes.forEach(imagen => {
-        const {likes,previewURL,largeImageURL,views} = imagen;
+    limpiarHTML();
 
+    //Iteramos las imagenes o hits encontramos en la API
+    imagenes.forEach(imagen => {
+        //Extramos los valores necesarios del objeto
+        const {likes,previewURL,largeImageURL,views} = imagen;
+        //Creamos un html dinamico por cada iteracion del foreach
         resultado.innerHTML += `
             <div class="w-1/2 md:w-1/3 lg:w-1/4 p-3 mb-4">
                 <div class="bg-white">
@@ -81,4 +97,66 @@ function mostrarImagenes(imagenes)
             </div>
         `;
     });
+
+    imprimirPaginador();
+}
+
+function imprimirPaginador()
+{
+    limpiarHTMLPaginador();
+
+    //Se crea un Generador para cada paginador
+    iterador = crearPaginador(totalPaginas);
+
+    while(true)
+    {    //Extraemos los valores del interador
+        const {value,done} = iterador.next();
+
+        if(done) return; //cuando done sea false, se rompera el iterador
+        
+        //Creamos botones hasta q se rompa el iterador
+        const boton = document.createElement('a');
+        boton.textContent = value;
+        boton.classList.add('siguiente','bg-yellow-400','hover:bg-yellow-900','px-4','py-1','mr-2','font-bold','mb-1','uppercase','rounded');
+        boton.dataset.pagina = value;
+        boton.href = '#';
+
+        //Agregamos el boton al html
+        paginadorDiv.appendChild(boton);
+    }
+
+}
+
+//Funcion Generador
+function *crearPaginador(totalPaginas)
+{   
+    for(let i=0; i<totalPaginas; i++)
+    {
+        //mostramos los valores con su mismo metodo yield
+        yield i+1;
+    }
+}
+
+function limpiarHTML()
+{
+    while(resultado.firstChild)
+    {   //Remueve los hijos
+        resultado.removeChild(resultado.firstChild);
+    }
+}
+
+//Limpiar el HTML de la paginacion
+function limpiarHTMLPaginador()
+{
+    while(paginadorDiv.firstChild)
+    {   //Remueve los hijos
+        paginadorDiv.removeChild(paginadorDiv.firstChild);
+    }
+}
+
+//Calcular la cantidad de paginas para el paginador
+function calcularPaginas(TotalElements)
+{
+    //redondeamos hacia arriba la division
+    return Math.ceil(TotalElements/registroPorPagina)
 }
