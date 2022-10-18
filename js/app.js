@@ -9,6 +9,7 @@ const registroPorPagina = 40;
 
 let totalPaginas;
 let iterador;
+let paginaActual = 1;
 
 //Que se cargue la ventana automaticamente
 window.onload = ()=>{
@@ -18,9 +19,9 @@ window.onload = ()=>{
 function validarFormulario(e){
     e.preventDefault();
 
-    const termino = document.querySelector('#termino').value;
+    const terminoInput = document.querySelector('#termino').value;
 
-    if(termino === '')
+    if(terminoInput === '')
     {
         //Validamos que si esta vacio, muestre la alerta
         mostrarAlerta('Agrega un Término de Búsqueda');
@@ -28,7 +29,7 @@ function validarFormulario(e){
         return;
     }
     //Invocamos la funcion una vez realizada la accion
-    buscarImagenes(termino);
+    buscarImagenes();
 }
 
 function mostrarAlerta(mensaje)
@@ -58,11 +59,13 @@ function mostrarAlerta(mensaje)
  
 }
 
-function buscarImagenes(palabra)
+function buscarImagenes()
 {
+    const termino = document.querySelector('#termino').value;
+
     //Establecemos los parametros de la API, luego consultamos a la API
     const key = '30646724-28b6ce9c335c39d50d52bf7f8';
-    const url = `https://pixabay.com/api/?key=${key}&q=${palabra}&per_page=${registroPorPagina}`;
+    const url = `https://pixabay.com/api/?key=${key}&q=${termino}&per_page=${registroPorPagina}&page=${paginaActual}`;
 
     fetch(url)
         .then(respuesta => respuesta.json())
@@ -120,6 +123,11 @@ function imprimirPaginador()
         boton.classList.add('siguiente','bg-yellow-400','hover:bg-yellow-900','px-4','py-1','mr-2','font-bold','mb-1','uppercase','rounded');
         boton.dataset.pagina = value;
         boton.href = '#';
+
+        boton.onclick = ()=>{
+            paginaActual = value;
+            buscarImagenes();
+        };
 
         //Agregamos el boton al html
         paginadorDiv.appendChild(boton);
