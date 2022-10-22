@@ -58,7 +58,29 @@ function mostrarAlerta(mensaje)
     }
  
 }
+//2DA FORMA DE CONECTAR CON LA API CON ASYNC AWAIT
+async function buscarImagenes()
+{
+    const termino = document.querySelector('#termino').value;
 
+    //Establecemos los parametros de la API, luego consultamos a la API
+    const key = '30646724-28b6ce9c335c39d50d52bf7f8';
+    const url = `https://pixabay.com/api/?key=${key}&q=${termino}&per_page=${registroPorPagina}&page=${paginaActual}`;
+
+    try {
+        const respuesta = await fetch(url);
+        const resultado = await respuesta.json();
+
+        totalPaginas = calcularPaginas(resultado.totalHits);
+                mostrarImagenes(resultado.hits);
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+/* 
+
+ 1ERA FORMA DE CONECTAR CON LA API CON FETCH
 function buscarImagenes()
 {
     const termino = document.querySelector('#termino').value;
@@ -73,8 +95,7 @@ function buscarImagenes()
             totalPaginas = calcularPaginas(resultado.totalHits);
             mostrarImagenes(resultado.hits);
         })
-}
-
+} */
 function mostrarImagenes(imagenes)
 {
     limpiarHTML();
